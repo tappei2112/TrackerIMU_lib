@@ -16,20 +16,20 @@
 
 ## 回路
 プライマリIMU(BMI160)
-BMI160 PIN | ESP32 PIN 
----------- | ---------
-    3V3    |    3V3
-    GND    |    GND
-    SCL    |   GPIO22
-    SDA    |   GPIO21
-    INT    |   GPIO23
+| BMI160 PIN | ESP32 PIN |
+| ---------- | --------- |
+|     3V3    |    3V3    |
+|     GND    |    GND    |
+|     SCL    |   GPIO22  |
+|     SDA    |   GPIO21  |
+|     INT    |   GPIO23  |
 
 セカンダリIMU(BMI160)
-BMI160 PIN | ESP32 PIN 
----------- | ---------
-    3V3    |    3V3
-    GND    |    GND
-    SCL    |   GPIO18
-    SDA    |   GPIO19
-    SAD    |    GND
-    INT    |   GPIO25
+| BMI160 PIN | ESP32 PIN |
+| ---------- | --------- |
+|     3V3    |    3V3    |
+|     GND    |    GND    |
+|     SCL    |   GPIO18  |
+|     SDA    |   GPIO19  |
+|     SAD    |    GND    |
+|     INT    |   GPIO25  |
