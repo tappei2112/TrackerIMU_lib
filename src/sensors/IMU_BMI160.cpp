@@ -14,6 +14,10 @@ bool initBMI160(bool isSecond) {
     result = BMI160_1.begin(BMI160GenClass::I2C_MODE, Wire, BMI160_ADDR1, PIN_INT);
   }
 
+  // 以下の2行のコードの代わりに、EmotBit_BMI160ライブラリにあるBMI160.cppのL116～L117を書き換える
+  //BMI160.setFullScaleGyroRange(BMI160_GYRO_RANGE_1000);
+  //BMI160.setFullScaleAccelRange(BMI160_ACCEL_RANGE_8G);
+
   Serial.println("BMI160 Initialized");
   return true;
 }

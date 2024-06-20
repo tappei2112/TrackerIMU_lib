@@ -9,7 +9,7 @@
 - [中華のBMI160モジュール](https://www.amazon.co.jp/gp/product/B083R3PTJ5/)
 
 ## 使用ライブラリ
-- [EmotBit BMI160](https://github.com/EmotiBit/EmotiBit_BMI160)
+- [EmotiBit BMI160](https://github.com/EmotiBit/EmotiBit_BMI160)
 
 ## 注意事項
 - センサーのフルスケール値を変更するため、ライブラリのコードを一部書き換えます
