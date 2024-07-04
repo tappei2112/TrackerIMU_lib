@@ -2,6 +2,7 @@
 #include "define.h"
 #include "sensors/IMU_BMI160.h"
 #include "ahrs/IMUAhrs.h"
+#include "filterIMU.h"
 
 bool IMU_Init(int, bool);
 void IMU_Read(int, bool, float*, float*);
@@ -39,6 +40,7 @@ void setup() {
 void loop() {
   float accel[3];
   float gyro[3];
+  float previous[4][3] = {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}}; // BandPassフィルタの前回値を管理する。前からAccelLowPass, AccelHighPass, GyroLowPass, GyroHighPass
   float alpha = 0.98; // フィルター係数
 
   unsigned long current_time = millis();
@@ -48,7 +50,13 @@ void loop() {
 
   IMU_Read(IMU, false, accel, gyro);
   //calculateAngles(accel, gyro, dt, angle);
-  IMUcalcAhrs(accel, gyro, angle);
+  for(int i = 0; i < 3; i++){
+    bandPassFilter(accel[i], &previous[0][i], &previous[1][i], 0.1, 0.1);
+    bandPassFilter(gyro[i], &previous[2][i], &previous[3][i], 0.1, 0.1);
+  }
+
+  //IMUcalcAhrs(accel, gyro, angle);
+  madgwickUpdate(gyro, accel, angle);
   if (i % 250 == 0){
     Serial.print("Primary IMU - Accel: ");
     Serial.print(accel[0]);
