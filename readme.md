@@ -13,6 +13,12 @@
 
 ## 注意事項
 - センサーのフルスケール値を変更するため、ライブラリのコードを一部書き換えます
+  
+	EmotiBit_BMI160ライブラリにあるBMI160.cppのL116～L117を書き換える
+  setFullScaleGyroRange(BMI160_GYRO_RANGE_1000);
+  setFullScaleAccelRange(BMI160_ACCEL_RANGE_8G);
+
+
 
 ## 回路
 プライマリIMU(BMI160 0x69)
