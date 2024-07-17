@@ -7,12 +7,19 @@ BMI160GenClass BMI160_1; // 1台目のインスタンス
 BMI160GenClass BMI160_2; // 2台目のインスタンス
 
 bool initBMI160(bool isSecond) {
-  bool result;
+  Serial.println("BMI160 Initializing");
+
   // BMI160の初期化(アドレスをもとに切り替え)
   if (isSecond) {
-    result = BMI160_2.begin(BMI160GenClass::I2C_MODE, Wire1, BMI160_ADDR2, PIN_IMU_INT_2);
+    if(!BMI160_2.begin(BMI160GenClass::I2C_MODE, Wire1, BMI160_ADDR2, PIN_IMU_INT_2)) {
+      Serial.println("BMI160_2 Initialization failed!");
+      return false;
+    }
   } else {
-    result = BMI160_1.begin(BMI160GenClass::I2C_MODE, Wire, BMI160_ADDR1, PIN_IMU_INT);
+    if(!BMI160_1.begin(BMI160GenClass::I2C_MODE, Wire, BMI160_ADDR1, PIN_IMU_INT)) {
+      Serial.println("BMI160_1 Initialization failed!");
+      return false;
+    }
   }
 
   Serial.println("BMI160 Initialized");
@@ -20,6 +27,7 @@ bool initBMI160(bool isSecond) {
 }
 
 void readBMI160(bool isSecond, float *accel, float *gyro) {
+  //Serial.println("Start reading");
   // センサーが吐き出すrawデータを格納する変数
   int raw_accel[3];
   int raw_gyro[3];
@@ -37,4 +45,5 @@ void readBMI160(bool isSecond, float *accel, float *gyro) {
   // ジャイロをdpsに変換(フルスケールは1000dps)
   gyro[i] = raw_gyro[i] / 32768.0 * 1000;
   }
+  //Serial.println("End reading");
 }

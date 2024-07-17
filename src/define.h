@@ -4,11 +4,15 @@
 
 // 使用するIMUとボードの設定
 #define IMU IMU_BMI160
-//#define SECOND_IMU IMU_BMI160
+#define SECOND_IMU IMU_BMI160
 #define BOARD BOARD_WROOM32
 #define IMU_ROTATION DEG_270
 #define SECOND_IMU_ROTATION DEG_270
 
+// 出力頻度設定(無限ループの実行回数間隔)
+#define STEP 40
+
+//#define DEBUG_SENSOR
 // ボードごとの設定
 #if BOARD == BOARD_WROOM32
   // シリアル通信の速度
