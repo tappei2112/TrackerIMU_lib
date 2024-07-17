@@ -12,6 +12,9 @@
 // 出力頻度設定(無限ループの実行回数間隔)
 #define STEP 40
 
+// コンプリメンタルフィルタ適用角度の最大値
+#define MAX_COMP 60
+
 //#define DEBUG_SENSOR
 // ボードごとの設定
 #if BOARD == BOARD_WROOM32

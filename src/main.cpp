@@ -78,7 +78,7 @@ public:
     }
 
     //あまり足が上がっていないときはコンプリメンタルフィルタ適用
-    if(abs(comp_angle[0]) < 30 && abs(comp_angle[1]) < 30){
+    if(abs(comp_angle[0]) < MAX_COMP && abs(comp_angle[1]) < MAX_COMP){
       for(int i = 0; i < 2; i++){
         angle[i] =  comp_angle[i];
       }
@@ -198,7 +198,7 @@ public:
           result = String(angle[0]) + ", " + String(angle[1]) + ", " + String(angle[2]);
         #endif
         if(isSecond){
-          result2 = ", " + result;
+          result2 = result;
         } else {
           result1 = result;
         }
@@ -219,6 +219,7 @@ void Prime_IMU_func(void *pvParameters) {
   while (true) {
     if (tracker1.IMU_Print(i, false)) {
       Serial.print(result1);
+      Serial.print(", ");
       Serial.print(result2);
       Serial.println();
     }
