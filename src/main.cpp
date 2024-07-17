@@ -198,7 +198,7 @@ public:
           result = String(angle[0]) + ", " + String(angle[1]) + ", " + String(angle[2]);
         #endif
         if(isSecond){
-          result2 = result;
+          result2 = ", " + result;
         } else {
           result1 = result;
         }
@@ -219,7 +219,6 @@ void Prime_IMU_func(void *pvParameters) {
   while (true) {
     if (tracker1.IMU_Print(i, false)) {
       Serial.print(result1);
-      Serial.print(", ");
       Serial.print(result2);
       Serial.println();
     }
