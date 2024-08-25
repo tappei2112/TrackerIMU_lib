@@ -11,12 +11,12 @@ bool initBMI160(bool isSecond) {
 
   // BMI160の初期化(アドレスをもとに切り替え)
   if (isSecond) {
-    if(!BMI160_2.begin(BMI160GenClass::I2C_MODE, Wire1, BMI160_ADDR2, PIN_IMU_INT_2)) {
+    if(!BMI160_2.begin(BMI160GenClass::I2C_MODE, Wire, BMI160_ADDR2, PIN_IMU_INT_2)) {
       Serial.println("BMI160_2 Initialization failed!");
       return false;
     }
   } else {
-    if(!BMI160_1.begin(BMI160GenClass::I2C_MODE, Wire, BMI160_ADDR1, PIN_IMU_INT)) {
+    if(!BMI160_1.begin(BMI160GenClass::I2C_MODE, Wire1, BMI160_ADDR1, PIN_IMU_INT)) {
       Serial.println("BMI160_1 Initialization failed!");
       return false;
     }

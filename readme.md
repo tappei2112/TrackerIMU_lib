@@ -22,23 +22,23 @@
 
 ## 回路
 
-※INTピンはつながなくてもよい
+※INTピンはつながなくてよい(現在のプログラムにおいて、初期化時に使うため一応用意している)
 
-プライマリIMU(BMI160 0x69)
+プライマリIMU(BMI160 0x68)
 | BMI160 PIN | ESP32 PIN |
 | ---------- | --------- |
 |     3V3    |    3V3    |
 |     GND    |    GND    |
 |     SCL    |   GPIO22  |
 |     SDA    |   GPIO21  |
+|     SDO    |    GND    |
 |     INT    |   GPIO23  |
 
-セカンダリIMU(BMI160 0x68)
+セカンダリIMU(BMI160 0x69)
 | BMI160 PIN | ESP32 PIN |
 | ---------- | --------- |
 |     3V3    |    3V3    |
 |     GND    |    GND    |
 |     SCL    |   GPIO18  |
 |     SDA    |   GPIO19  |
-|     SAD    |    GND    |
 |     INT    |   GPIO25  |

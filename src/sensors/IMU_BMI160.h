@@ -4,8 +4,8 @@
 #include <BMI160Gen.h>
 #include "define.h"
 
-#define BMI160_ADDR1 0x69 // 1台目用のアドレス
-#define BMI160_ADDR2 0x68 // 2台目用のアドレス
+#define BMI160_ADDR1 0x68 // 1台目用のアドレス
+#define BMI160_ADDR2 0x69 // 2台目用のアドレス
 
 // 初期化
 bool initBMI160(bool isSecond);

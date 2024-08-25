@@ -2,6 +2,8 @@
 #include "define.h"
 #include "sensors/IMU_BMI160.h"
 
+void applyRotationMatrix(bool, float*, float*);
+
 // タスクハンドル
 TaskHandle_t Task1;
 TaskHandle_t Task2;
@@ -15,6 +17,8 @@ bool SInited = false;
 class Tracker{
 public:
   float ini_gyro[3] = {0.0, 0.0, 0.0};
+  float default_accel[3] = {0.0, 0.0, 0.0};
+  float default_gyro[3] = {0.0, 0.0, 0.0};
   float accel[3] = {0.0, 0.0, 0.0};
   float gyro[3] = {0.0, 0.0, 0.0};
   float angle[3] = {0.0, 0.0, 0.0}; // pitch, roll, yaw
@@ -43,11 +47,13 @@ public:
   void IMU_Read(int kind, bool isSecond){ //使用するIMUに合わせた値の読み出し処理を、変数を間接参照して呼び出す
     switch(kind){
       case IMU_BMI160:
-        readBMI160(isSecond, accel, gyro);
+        readBMI160(isSecond, default_accel, default_gyro);
         break;
       default:
         break;
     }
+    applyRotationMatrix(isSecond, default_accel, accel);
+    applyRotationMatrix(isSecond, default_gyro, gyro);
   }
 
   // 角度の計算
@@ -71,7 +77,7 @@ public:
     comp_angle[1] = alpha * (comp_angle[1] + angle[1]) + (1 - alpha) * roll_accel;
 
     // 足モード(mode = 0)でほぼ下向きの時、角度のずれを修正
-    if(abs(comp_angle[0]) < 10 && abs(comp_angle[1]) < 10){
+    if(abs(comp_angle[0]) + abs(comp_angle[1]) < MAX_NOYAW){
       for(int i = 0; i < 3; i++){
         angle[i] = 0;
       }
@@ -84,89 +90,6 @@ public:
       }
     }
   }
-
-  // 位置の計算
-  /*void calculatePositions(){
-    float radAngle[3];
-    //float absaccel = sqrt(accel[0] * accel[0] + accel[1] * accel[1] + accel[2] * accel[2]);
-    float absaccel = 9.81;
-    float gravity[3];
-    float dynamic_accel[3];
-    float rotation[3][3];
-
-    // 三角関数を計算するために、角度をラジアンに
-    for (int i = 0; i < 3; i++){
-      radAngle[i] = angle[i] * M_PI / 180.0;
-    }
-
-    // 加速度から重力成分を除去
-    gravity[0] = absaccel * sin(radAngle[0]);
-    gravity[1] = absaccel * -sin(radAngle[1]) * cos(radAngle[0]);
-    gravity[2] = absaccel * cos(radAngle[1]) * cos(radAngle[0]);
-
-    for (int i = 0; i < 3; i++){
-      dynamic_accel[i] = accel[i] * 9.81 - gravity[i];
-    }
-
-    // 回転行列の計算
-    float R_x[3][3] = {
-        {1, 0, 0},
-        {0, cos(radAngle[1]), -sin(radAngle[1])},
-        {0, sin(radAngle[1]), cos(radAngle[1])}
-    };
-
-    float R_y[3][3] = {
-        {cos(radAngle[0]), 0, sin(radAngle[0])},
-        {0, 1, 0},
-        {-sin(radAngle[0]), 0, cos(radAngle[0])}
-    };
-
-    float R_z[3][3] = {
-        {cos(radAngle[2]), -sin(radAngle[2]), 0},
-        {sin(radAngle[2]), cos(radAngle[2]), 0},
-        {0, 0, 1}
-    };
-
-    // 回転行列 R_y * R_x を計算
-    float R_yx[3][3];
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            R_yx[i][j] = 0;
-            for (int k = 0; k < 3; k++) {
-                R_yx[i][j] += R_y[i][k] * R_x[k][j];
-            }
-        }
-    }
-
-    // 最終的な回転行列 R = R_z * R_yx を計算
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            rotation[i][j] = 0;
-            for (int k = 0; k < 3; k++) {
-                rotation[i][j] += R_z[i][k] * R_yx[k][j];
-            }
-        }
-    }
-
-    // ワールド座標系の加速度(m/s^2)を計算
-    for (int i = 0; i < 3; i++) {
-        world_accel[i] = 0.0;
-        for (int j = 0; j < 3; j++) {
-          world_accel[i] += rotation[i][j] * dynamic_accel[j];
-        }
-    }
-
-    // 2重積分
-    integrate_matrix(world_accel, world_velocity, dt);
-    integrate_matrix(world_velocity, world_position, dt);
-  }
-
-  // 3要素配列の積分関数
-  void integrate_matrix(float *data, float *target, float dt){
-    for (int i = 0; i < 3; i++) {
-      target[i] += data[i] * dt;
-    }
-  }*/
 
   bool IMU_Print(int i, bool isSecond){
     int j;
@@ -242,9 +165,9 @@ void setup() {
   // シリアル通信の初期化
   Serial.begin(BAUDRATE);
   // i2cの初期化
-  Wire.begin(); // default GPIO21 = SDA, GPIO18 = SCL
+  Wire.begin(); // default GPIO21 = SDA, GPIO22 = SCL
   delay(100);
-  Wire1.begin(PIN_IMU_SDA_2, PIN_IMU_SCL_2);  // GPIO19 = SDA, GPIO18 = SCL
+  Wire1.begin(PIN_IMU_SDA, PIN_IMU_SCL);  // GPIO19 = SDA, GPIO18 = SCL
   // IMUの初期化
   Serial.println("Initializing Primary IMU device...");
   while (!tracker1.IMU_Init(IMU, false)) {
@@ -262,7 +185,7 @@ void setup() {
   Serial.println("Secondary IMU Initialized");
   #endif
 
-    // コア0でタスクを作成
+  // コア0でタスクを作成
   xTaskCreatePinnedToCore(Prime_IMU_func, "Prime_IMU_func", 4096, NULL, 1, &Task1, 1);
 #ifdef SECOND_IMU
   xTaskCreatePinnedToCore(Second_IMU_func, "Second_IMU_func", 4096, NULL, 1, &Task2, 0);
@@ -271,4 +194,17 @@ void setup() {
 
 void loop() {
   // 特に何もしない
+}
+
+void applyRotationMatrix(bool isSecond, float *array1, float *array2){
+  for (int i = 0; i < 3; i++) {
+      array2[i] = 0;
+    for (int j = 0; j < 3; j++) {
+      if(isSecond){
+        array2[i] += rotation_matrix_S[i][j] * array1[j];
+      } else {
+        array2[i] += rotation_matrix_P[i][j] * array1[j];
+      }
+    }
+  }
 }

@@ -1,0 +1,83 @@
+  //没にした位置計算用のコード。消すのはもったいないのでここに残しておくが、まったく使い物にはならない
+  // 位置の計算
+  /*void calculatePositions(){
+    float radAngle[3];
+    //float absaccel = sqrt(accel[0] * accel[0] + accel[1] * accel[1] + accel[2] * accel[2]);
+    float absaccel = 9.81;
+    float gravity[3];
+    float dynamic_accel[3];
+    float rotation[3][3];
+
+    // 三角関数を計算するために、角度をラジアンに
+    for (int i = 0; i < 3; i++){
+      radAngle[i] = angle[i] * M_PI / 180.0;
+    }
+
+    // 加速度から重力成分を除去
+    gravity[0] = absaccel * sin(radAngle[0]);
+    gravity[1] = absaccel * -sin(radAngle[1]) * cos(radAngle[0]);
+    gravity[2] = absaccel * cos(radAngle[1]) * cos(radAngle[0]);
+
+    for (int i = 0; i < 3; i++){
+      dynamic_accel[i] = accel[i] * 9.81 - gravity[i];
+    }
+
+    // 回転行列の計算
+    float R_x[3][3] = {
+        {1, 0, 0},
+        {0, cos(radAngle[1]), -sin(radAngle[1])},
+        {0, sin(radAngle[1]), cos(radAngle[1])}
+    };
+
+    float R_y[3][3] = {
+        {cos(radAngle[0]), 0, sin(radAngle[0])},
+        {0, 1, 0},
+        {-sin(radAngle[0]), 0, cos(radAngle[0])}
+    };
+
+    float R_z[3][3] = {
+        {cos(radAngle[2]), -sin(radAngle[2]), 0},
+        {sin(radAngle[2]), cos(radAngle[2]), 0},
+        {0, 0, 1}
+    };
+
+    // 回転行列 R_y * R_x を計算
+    float R_yx[3][3];
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            R_yx[i][j] = 0;
+            for (int k = 0; k < 3; k++) {
+                R_yx[i][j] += R_y[i][k] * R_x[k][j];
+            }
+        }
+    }
+
+    // 最終的な回転行列 R = R_z * R_yx を計算
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            rotation[i][j] = 0;
+            for (int k = 0; k < 3; k++) {
+                rotation[i][j] += R_z[i][k] * R_yx[k][j];
+            }
+        }
+    }
+
+    // ワールド座標系の加速度(m/s^2)を計算
+    for (int i = 0; i < 3; i++) {
+        world_accel[i] = 0.0;
+        for (int j = 0; j < 3; j++) {
+          world_accel[i] += rotation[i][j] * dynamic_accel[j];
+        }
+    }
+
+    // 2重積分
+    integrate_matrix(world_accel, world_velocity, dt);
+    integrate_matrix(world_velocity, world_position, dt);
+  }
+
+  // 3要素配列の積分関数
+  void integrate_matrix(float *data, float *target, float dt){
+    for (int i = 0; i < 3; i++) {
+      target[i] += data[i] * dt;
+    }
+  }*/
