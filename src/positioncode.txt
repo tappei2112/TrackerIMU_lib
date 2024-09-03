@@ -1,4 +1,7 @@
   //没にした位置計算用のコード。消すのはもったいないのでここに残しておくが、まったく使い物にはならない
+  //float world_accel[3] = {0.0, 0.0, 0.0};
+  //float world_velocity[3] = {0.0, 0.0, 0.0};
+  //float world_position[3] = {0.0, 0.0, 0.0};
   // 位置の計算
   /*void calculatePositions(){
     float radAngle[3];

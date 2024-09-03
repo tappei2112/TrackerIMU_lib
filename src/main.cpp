@@ -1,30 +1,23 @@
 #include <Arduino.h>
 #include "define.h"
 #include "sensors/IMU_BMI160.h"
+//#include <esp_system.h>
 
 void applyRotationMatrix(bool, float*, float*);
 
 // タスクハンドル
 TaskHandle_t Task1;
 TaskHandle_t Task2;
+TaskHandle_t Task3;
 // 演算結果をコアごとに格納する文字列
-String result1 = "";
-String result2 = "";
-// どうやら同時に初期化処理をすることに問題がありそうなので、一方の初期化を待つための変数
-bool PInited = false;
-bool SInited = false;
+String result1 = "0.00, 0.00, 0.00";
+String result2 = "0.00, 0.00, 0.00";
 
 class Tracker{
 public:
-  float ini_gyro[3] = {0.0, 0.0, 0.0};
-  float default_accel[3] = {0.0, 0.0, 0.0};
-  float default_gyro[3] = {0.0, 0.0, 0.0};
   float accel[3] = {0.0, 0.0, 0.0};
   float gyro[3] = {0.0, 0.0, 0.0};
   float angle[3] = {0.0, 0.0, 0.0}; // pitch, roll, yaw
-  float world_accel[3] = {0.0, 0.0, 0.0};
-  float world_velocity[3] = {0.0, 0.0, 0.0};
-  float world_position[3] = {0.0, 0.0, 0.0};
   unsigned long last_time = 0;
   unsigned long current_time = millis();
   float dt = 0;  // ミリ秒から秒に変換
@@ -45,6 +38,8 @@ public:
 
   // 値の読み取り(将来的にセンサーを変更しても対応できるようにしている)
   void IMU_Read(int kind, bool isSecond){ //使用するIMUに合わせた値の読み出し処理を、変数を間接参照して呼び出す
+    float default_accel[3] = {0.0, 0.0, 0.0};
+    float default_gyro[3] = {0.0, 0.0, 0.0};
     switch(kind){
       case IMU_BMI160:
         readBMI160(isSecond, default_accel, default_gyro);
@@ -104,62 +99,75 @@ public:
     dt = (current_time - last_time) / 1000.0;  // ミリ秒から秒に変換
     last_time = current_time;
 
-      calculateAngles(dt);
-      //calculatePositions();
-      if (i % STEP == 0){
-        String result = "";
-        #ifdef DEBUG_SENSOR
-          if(isSecond){
-            result = "Secondary ";
-          } else {
-            result = "Primary ";
-          }
-          result += "IMU - Accel: " + String(accel[0]) + ", " + String(accel[1]) + ", " + String(accel[2]);
-          result += " | Gyro: " + String(gyro[0]) + ", " + String(gyro[1]) + ", " + String(gyro[2]);
-          result += " | Angle: " + String(angle[0]) + ", " + String(angle[1]) + ", " + String(angle[2]);
-        #else
-          result = String(angle[0]) + ", " + String(angle[1]) + ", " + String(angle[2]);
-        #endif
+    calculateAngles(dt);
+    if (i % STEP == 0){
+      String result = "";
+      #ifdef DEBUG_SENSOR
         if(isSecond){
-          result2 = result;
+          result = "Secondary ";
         } else {
-          result1 = result;
+          result = "Primary ";
         }
-        return true;
+        result += "IMU - Accel: " + String(accel[0]) + ", " + String(accel[1]) + ", " + String(accel[2]);
+        result += " | Gyro: " + String(gyro[0]) + ", " + String(gyro[1]) + ", " + String(gyro[2]);
+        result += " | Angle: " + String(angle[0]) + ", " + String(angle[1]) + ", " + String(angle[2]);
+      #else
+        result = String(angle[0]) + ", " + String(angle[1]) + ", " + String(angle[2]);
+      #endif
+      if(isSecond){
+        result2 = result;
+      } else {
+        result1 = result;
       }
-      return false;
+      return true;
     }
-  //}
+    return false;
+  }
 };
 
 // Trackerのインスタンスを作成
 Tracker tracker1; // 1台目のインスタンス
 Tracker tracker2; // 2台目のインスタンス
 
-// 1つ目のIMU制御
-void Prime_IMU_func(void *pvParameters) {
+// 1つ目のIMU制御タスク
+void Prime_IMU_Task(void *pvParameters) {
   static int i = 0; //実行回数
   while (true) {
-    if (tracker1.IMU_Print(i, false)) {
-      Serial.print(result1);
-      Serial.print(", ");
-      Serial.print(result2);
-      Serial.println();
-    }
+    tracker1.IMU_Print(i, false);
     i++;
+    delay(5); // センサー読み取りのための短い遅延
   }
 }
 
-#ifdef SECOND_IMU
-// 2つ目のIMU制御
-void Second_IMU_func(void *pvParameters) {
+// 2つ目のIMU制御タスク
+void Second_IMU_Task(void *pvParameters) {
   static int i = 0; //実行回数
   while (true) {
+    #ifdef SECOND_IMU
     tracker2.IMU_Print(i, true);
+    #endif
     i++;
+    delay(5); // センサー読み取りのための短い遅延
   }
 }
-#endif
+
+// シリアル通信監視タスク
+void SerialMonitorTask(void *pvParameters) {
+  while (true) {
+    if (Serial.available() > 0) {
+      String receivedData = Serial.readStringUntil('\n');  // 改行までの文字列を読み取る
+      if (receivedData == "SEND") {
+        Serial.print(result1);
+        Serial.print(", ");
+        Serial.print(result2);
+        Serial.println();
+      } else if (receivedData == "RESET") {
+        ESP.restart();
+      }
+    }
+    delay(10);  // シリアル通信監視のための短い遅延
+  }
+}
 
 void setup() {
   // シリアル通信の初期化
@@ -185,11 +193,12 @@ void setup() {
   Serial.println("Secondary IMU Initialized");
   #endif
 
-  // コア0でタスクを作成
-  xTaskCreatePinnedToCore(Prime_IMU_func, "Prime_IMU_func", 4096, NULL, 1, &Task1, 1);
-#ifdef SECOND_IMU
-  xTaskCreatePinnedToCore(Second_IMU_func, "Second_IMU_func", 4096, NULL, 1, &Task2, 0);
-#endif
+  // タスクを作成して特定のコアに割り当てる
+  xTaskCreatePinnedToCore(Prime_IMU_Task, "Prime_IMU_Task", 4096, NULL, 1, &Task1, 1);
+  #ifdef SECOND_IMU
+  xTaskCreatePinnedToCore(Second_IMU_Task, "Second_IMU_Task", 4096, NULL, 1, &Task2, 0);
+  #endif
+  xTaskCreatePinnedToCore(SerialMonitorTask, "SerialMonitorTask", 2048, NULL, 1, &Task3, 1);
 }
 
 void loop() {

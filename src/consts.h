@@ -15,6 +15,7 @@
 //#define IMU_ICM20948 9
 //#define IMU_ICM42688 10
 #define IMU_DEV_RESERVED 250 // Reserved, should not be used in any release firmware
+#define IMU_NONE 255 // IMUがつながっていない
 
 // 使用するマイコンの種類
 #define BOARD_UNKNOWN 0

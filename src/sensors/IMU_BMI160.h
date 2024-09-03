@@ -4,8 +4,10 @@
 #include <BMI160Gen.h>
 #include "define.h"
 
-#define BMI160_ADDR1 0x68 // 1台目用のアドレス
-#define BMI160_ADDR2 0x69 // 2台目用のアドレス
+/* ライブラリ bmi160.cppの書き換え(bmi160.cpp L116/L117)
+setFullScaleGyroRange(BMI160_GYRO_RANGE_1000);
+setFullScaleAccelRange(BMI160_ACCEL_RANGE_8G);
+*/
 
 // 初期化
 bool initBMI160(bool isSecond);
