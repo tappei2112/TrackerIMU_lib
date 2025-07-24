@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "define.h"
 #include "sensors/IMU_BMI160.h"
-//#include <esp_system.h>
+#include <esp_system.h>
 
 void applyRotationMatrix(bool, float*, float*);
 
